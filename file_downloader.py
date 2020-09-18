@@ -1,6 +1,7 @@
 import gzip
 from my_downloader import *
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 WET_URL_ROOT = "https://commoncrawl.s3.amazonaws.com"
 download_dir = os.getcwd() + "\\" + "download"
@@ -40,10 +41,15 @@ def segments_download(dump_id: str):
     with path_file_reader(dump_id) as f:
         segments = [segment.strip() for segment in f]
     n = len(segments)
-    for i, segment in enumerate(segments):
-        segment_url = "/".join((WET_URL_ROOT, segment))
-        dst = download_dir + "\\" + dump_id + "\\" + os.path.basename(segment_url)
-        down(segment_url, dst)
+    thread_list = []
+    with ThreadPoolExecutor(max_workers=task_num) as t:
+        for i, segment in enumerate(segments):
+            segment_url = "/".join((WET_URL_ROOT, segment))
+            dst = download_dir + "\\" + dump_id + "\\" + os.path.basename(segment_url)
+            thread = t.submit(down, segment_url, dst)
+            thread_list.append(thread)
+        for future in as_completed(thread_list):
+            result = future.result()
 
 
 if __name__ == "__main__":

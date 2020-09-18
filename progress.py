@@ -31,7 +31,8 @@ class DownProgress(object):
                         speed_str = '%.2f MB/s' % (down_speed / 1024)
                     else:
                         speed_str = '%.2f kb/s' % down_speed
-                    print('\r' + '[下载进度]：[%s]%.2f%%，下载速度：%s' % (
+                    filename = os.path.basename(self.dst)
+                    print('\r' + '[%s  下载进度]：[%s]%.2f%%，下载速度：%s' % (filename,
                     '#' * int(self.init_size * 50 / self.total), float(self.init_size / self.total * 100), speed_str),
                           end='')
 

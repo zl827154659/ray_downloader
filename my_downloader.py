@@ -1,4 +1,5 @@
 import requests, re
+import warnings
 from progress import *
 
 
@@ -11,6 +12,7 @@ headers = {
 
 
 def down(url, dst):
+    warnings.filterwarnings("ignore")
     try:
         # 第一次请求为了获取文件大小
         response = requests.get(url, stream=True, verify=False)

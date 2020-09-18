@@ -1,38 +1,24 @@
-import queue
-import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 
 task_num = 10
-queueLock = threading.Lock()
-work_queue = queue.Queue(task_num)
-exitFlag = 0
 
 
-class DownloadThread(threading.Thread):
-    def __init__(self, thread_id, q):
-        threading.Thread.__init__(self)
-        self.thread_id = thread_id
-        self.queue = q
-
-    def run(self):
-        print("开启线程： " + self.thread_id)
-        print("退出线程： " + self.thread_id)
-
-
-def download(thread_id, q):
+def download(url, dst):
     """消费者"""
-    while not exitFlag:
-        queueLock.acquire()
-        if not work_queue.empty():
-            data = q.get()
-            print("线程编号 " + thread_id + "正在下载 " + data)
-            time.sleep(1)
-        else:
-            queueLock.release()
+    print("%s start downloading to %s " % (url, dst))
+    time.sleep(2)
+    return "%s has downloaded to %s " % (url, dst)
+
 
 if __name__ == "__main__":
-    t = range[10]
-    r = range[100]
-    for i in r:
-        while not work_queue.full():
-            work_queue.put(i)
+    url_list = range(1, 100)
+    thread_list = []
+    with ThreadPoolExecutor(max_workers=task_num) as t:
+        for url in url_list:
+            dst = url
+            thread = t.submit(download, url, dst)
+            thread_list.append(thread)
+
+        for future in as_completed(thread_list):
+            result = future.result()
