@@ -1,11 +1,11 @@
 import gzip
+import argparse
 from my_downloader import *
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 WET_URL_ROOT = "https://commoncrawl.s3.amazonaws.com"
 download_dir = os.getcwd() + "\\" + "download"
-task_num = 10
 
 
 def path_url(dump_id: str) -> str:
@@ -37,7 +37,7 @@ def path_file_reader(dump_id: str):
     return path_file_reader(dump_id)
 
 
-def segments_download(dump_id: str):
+def segments_download(dump_id: str, task_num: int):
     with path_file_reader(dump_id) as f:
         segments = [segment.strip() for segment in f]
     n = len(segments)
@@ -53,4 +53,8 @@ def segments_download(dump_id: str):
 
 
 if __name__ == "__main__":
-    segments_download("2017-51")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dump", help="the dump_id of common crawl wet file", default="2017-51")
+    parser.add_argument("--task_num", help="the number of multiprocessing downloading threads", default=10)
+    args = parser.parse_args()
+    segments_download(args.dump, args.task_num)
