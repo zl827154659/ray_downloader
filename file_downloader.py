@@ -57,5 +57,5 @@ if __name__ == "__main__":
     parser.add_argument("--dump", help="the dump_id of common crawl wet file", default="2020-29")
     parser.add_argument("--task_num", help="the number of multiprocessing downloading threads", default=100)
     args = parser.parse_args()
-    path_download(args.dump)
-    segments_download(args.dump, args.task_num)
+    path_download(str(args.dump))
+    segments_download(str(args.dump), int(args.task_num))
