@@ -5,15 +5,15 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 WET_URL_ROOT = "https://commoncrawl.s3.amazonaws.com"
-download_dir = os.getcwd() + "\\" + "download"
-
+# download_dir = os.path.join(os.getcwd(), "download")
+download_dir = os.path.abspath(os.path.join(os.getcwd(), "..", "CommonCrawl"))
 
 def path_url(dump_id: str) -> str:
     return "/".join([WET_URL_ROOT, "crawl-data", "CC-MAIN-" + dump_id, "wet.paths.gz"])
 
 
 def path_download(dump_id: str):
-    dst = download_dir + "\\" + dump_id + "\\" + "wet.paths.gz"
+    dst = os.path.join(download_dir, dump_id, "wet.paths.gz")
     print(dst)
     try:
         down(path_url(dump_id), dst)
@@ -28,7 +28,7 @@ def path_file_reader(dump_id: str):
 
     打开路径文件，按照url索引集准备下载列表
     """
-    filename = download_dir + "\\" + dump_id + "\\wet.paths.gz"
+    filename = os.path.join(download_dir, dump_id, "wet.paths.gz")
     if isinstance(filename, str):
         return gzip.open(Path(filename), "rt")
     # 如果路径文件不存在，则重新下载路径文件再打开
@@ -45,7 +45,7 @@ def segments_download(dump_id: str, task_num: int):
     with ThreadPoolExecutor(max_workers=task_num) as t:
         for i, segment in enumerate(segments):
             segment_url = "/".join((WET_URL_ROOT, segment))
-            dst = download_dir + "\\" + dump_id + "\\" + os.path.basename(segment_url)
+            dst = os.path.join(download_dir, dump_id, os.path.basename(segment_url))
             thread = t.submit(down, segment_url, dst)
             thread_list.append(thread)
         for future in as_completed(thread_list):
@@ -57,4 +57,5 @@ if __name__ == "__main__":
     parser.add_argument("--dump", help="the dump_id of common crawl wet file", default="2017-51")
     parser.add_argument("--task_num", help="the number of multiprocessing downloading threads", default=10)
     args = parser.parse_args()
+    path_download(args.dump)
     segments_download(args.dump, args.task_num)

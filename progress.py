@@ -51,3 +51,7 @@ class DownProgress(object):
 
     def update(self, size):
         self.init_size += size
+
+if __name__ == "__main__":
+    print(os.path.abspath(os.path.join(os.getcwd(), "..", "CommonCrawl")))
+    print(os.path.join(os.getcwd(), "..", "CommonCrawl"))
