@@ -1,6 +1,7 @@
 import os
 import time
 from threading import Thread
+from file_downloader import path_download
 
 '''下载进度条'''
 
@@ -33,7 +34,9 @@ class DownProgress(object):
                         speed_str = '%.2f kb/s' % down_speed
                     filename = os.path.basename(self.dst)
                     print('\r' + '[%s  下载进度]：[%s]%.2f%%，下载速度：%s' % (filename,
-                    '#' * int(self.init_size * 50 / self.total), float(self.init_size / self.total * 100), speed_str),
+                                                                    '#' * int(self.init_size * 50 / self.total),
+                                                                    float(self.init_size / self.total * 100),
+                                                                    speed_str),
                           end='')
 
             # 计算下载时间
@@ -52,6 +55,6 @@ class DownProgress(object):
     def update(self, size):
         self.init_size += size
 
+
 if __name__ == "__main__":
-    print(os.path.abspath(os.path.join(os.getcwd(), "..", "CommonCrawl")))
-    print(os.path.join(os.getcwd(), "..", "CommonCrawl"))
+    path_download('2020-29')

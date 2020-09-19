@@ -1,6 +1,5 @@
 import gzip
 import argparse
-import threading
 from my_downloader import *
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
