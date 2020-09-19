@@ -1,5 +1,6 @@
 import gzip
 import argparse
+import threading
 from my_downloader import *
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -8,13 +9,13 @@ WET_URL_ROOT = "https://commoncrawl.s3.amazonaws.com"
 # download_dir = os.path.join(os.getcwd(), "download")
 download_dir = os.path.abspath(os.path.join(os.getcwd(), "..", "CommonCrawl"))
 
+
 def path_url(dump_id: str) -> str:
     return "/".join([WET_URL_ROOT, "crawl-data", "CC-MAIN-" + dump_id, "wet.paths.gz"])
 
 
 def path_download(dump_id: str):
     dst = os.path.join(download_dir, dump_id, "wet.paths.gz")
-    print(dst)
     try:
         down(path_url(dump_id), dst)
     except Exception as e:
@@ -29,12 +30,11 @@ def path_file_reader(dump_id: str):
     打开路径文件，按照url索引集准备下载列表
     """
     filename = os.path.join(download_dir, dump_id, "wet.paths.gz")
-    if isinstance(filename, str):
-        return gzip.open(Path(filename), "rt")
     # 如果路径文件不存在，则重新下载路径文件再打开
-    print("the 'wet.paths.gz' file is not exist, will download soon")
-    path_download(dump_id)
-    return path_file_reader(dump_id)
+    if not os.path.exists(filename):
+        print("the 'wet.paths.gz' file is not exist, will download soon")
+        path_download(dump_id)
+    return gzip.open(Path(filename), "rt")
 
 
 def segments_download(dump_id: str, task_num: int):
@@ -54,8 +54,8 @@ def segments_download(dump_id: str, task_num: int):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dump", help="the dump_id of common crawl wet file", default="2017-51")
-    parser.add_argument("--task_num", help="the number of multiprocessing downloading threads", default=10)
+    parser.add_argument("--dump", help="the dump_id of common crawl wet file", default="2020-29")
+    parser.add_argument("--task_num", help="the number of multiprocessing downloading threads", default=100)
     args = parser.parse_args()
     path_download(args.dump)
     segments_download(args.dump, args.task_num)

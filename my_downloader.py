@@ -1,45 +1,50 @@
-import requests, re
+import os
+import sys
 import warnings
-from progress import *
+import re
+import requests
 
-
-host = "http://www.8080s.net"
 url = "http://www.8080s.net/movie/32088"
-headers = {
-    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1'}
 
-''' 断点下载'''
+warnings.filterwarnings("ignore")
 
 
 def down(url, dst):
-    warnings.filterwarnings("ignore")
-    try:
-        # 第一次请求为了获取文件大小
-        response = requests.get(url, stream=True, verify=False)
-        file_size = int(response.headers['content-length'])
-        if os.path.exists(dst):
-            first_size = os.path.getsize(dst)
-        else:
-            dst_dir = "\\".join(dst.split("\\")[:-1])
-            if not os.path.exists(dst_dir):
-                os.makedirs(dst_dir)
-            first_size = 0
-        if file_size <= first_size:
-            return
-        headers['Range'] = "bytes=%d-" % (first_size,)
-        print("开始下载：" + url)
-        res = requests.get(url, stream=True, headers=headers, verify=False)
-        # 以ab模式打开则为追加写入
-        with open(dst, "ab") as f:
-            dp = DownProgress(file_size, first_size, dst)
-            dp.start()
-            chunk_size = 1024
-            for chunk in res.iter_content(chunk_size=chunk_size):
-                if chunk:
-                    f.write(chunk)
-                    dp.update(chunk_size)
-    except Exception as e:
-        print(e)
+    # 第一次请求是为了得到文件总大小
+    r1 = requests.get(url, stream=True, verify=False)
+    total_size = int(r1.headers['Content-Length'])
+
+    # 这重要了，先看看本地文件下载了多少
+    if os.path.exists(dst):
+        temp_size = os.path.getsize(dst)  # 本地已经下载的文件大小
+    else:
+        dst_dir = "\\".join(dst.split("\\")[:-1])
+        if not os.path.exists(dst_dir):
+            os.makedirs(dst_dir)
+        temp_size = 0
+    if total_size <= temp_size:
+        return
+    # 显示一下下载了多少
+    print("当前文件:%s, 已下载大小:%s" % (os.path.basename(dst), temp_size))
+    print("文件总大小:%s" % total_size)
+    # 核心部分，这个是请求下载时，从本地文件已经下载过的后面下载
+    headers = {'Range': 'bytes=%d-' % temp_size}
+    # 重新请求网址，加入新的请求头的
+    r = requests.get(url, stream=True, verify=False, headers=headers)
+
+    # "ab"表示追加形式写入文件
+    with open(dst, "ab") as f:
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk:
+                temp_size += len(chunk)
+                f.write(chunk)
+                f.flush()
+
+                ###这是下载实现进度显示####
+                done = int(50 * temp_size / total_size)
+                sys.stdout.write("\r[%s%s] %d%%" % ('█' * done, ' ' * (50 - done), 100 * temp_size / total_size))
+                sys.stdout.flush()
+    print()  # 避免上面\r 回车符
 
 
 if __name__ == '__main__':
