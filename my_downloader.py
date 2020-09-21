@@ -1,10 +1,7 @@
 import os
 import sys
 import warnings
-import re
 import requests
-
-url = "http://www.8080s.net/movie/32088"
 
 warnings.filterwarnings("ignore")
 
@@ -45,10 +42,3 @@ def down(url, dst):
                 sys.stdout.write("\r[%s%s] %d%%" % ('█' * done, ' ' * (50 - done), 100 * temp_size / total_size))
                 sys.stdout.flush()
     print()  # 避免上面\r 回车符
-
-
-if __name__ == '__main__':
-    res = requests.get(url)
-    content = res.text
-    a = re.findall(r"<a[^>]*\s+href=[\'\"]?([^\'\"]*)[\'\"]?[^>]*\s+>.*<\/", content)
-    down(a[0], './%s' % os.path.basename(a[0]))

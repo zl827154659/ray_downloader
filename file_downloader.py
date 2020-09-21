@@ -5,7 +5,6 @@ from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 WET_URL_ROOT = "https://commoncrawl.s3.amazonaws.com"
-# download_dir = os.path.join(os.getcwd(), "download")
 download_dir = os.path.abspath(os.path.join(os.getcwd(), "..", "CommonCrawl"))
 
 
